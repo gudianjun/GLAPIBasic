@@ -1,0 +1,6 @@
+@GLAPIBasic_HostAddress = http://localhost:5204
+
+GET {{GLAPIBasic_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
