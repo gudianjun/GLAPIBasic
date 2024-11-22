@@ -9,9 +9,6 @@ namespace GLAPIBasic.Services.Implementations
         {
         }
 
-        public Logininfo GetLogininfo(string username, string password)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

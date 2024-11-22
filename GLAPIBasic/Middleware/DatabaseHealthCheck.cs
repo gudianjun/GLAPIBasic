@@ -42,10 +42,10 @@ namespace GLAPIBasic.Middleware
             {
                 try
                 {
-                    DbContextOptions<MySqlDbContext> options = new DbContextOptionsBuilder<MySqlDbContext>()
-                       .UseMySql(connectionString!, ServerVersion.AutoDetect(connectionString))
+                    DbContextOptions<PgDbContext> options = new DbContextOptionsBuilder<PgDbContext>()
+                       .UseNpgsql(connectionString!)
                        .Options;
-                    MySqlDbContext dbContext = new MySqlDbContext(options);
+                    PgDbContext dbContext = new PgDbContext(options);
                     try
                     {
                         dbContext.Database.OpenConnection();

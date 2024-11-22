@@ -27,8 +27,8 @@ namespace GLAPIBasic.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly APIConfig _apiConfig;
-        private readonly MySqlDbContext _dbContext;
-        public SampleController(IConfiguration configuration, IOptionsMonitor<APIConfig> apiConfig, MySqlDbContext context)
+        private readonly PgDbContext _dbContext;
+        public SampleController(IConfiguration configuration, IOptionsMonitor<APIConfig> apiConfig, PgDbContext context)
         {
             _dbContext = context;
             _apiConfig = apiConfig.CurrentValue;
@@ -168,35 +168,7 @@ namespace GLAPIBasic.Controllers
             }
             var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
             return File(fileBytes, "application/octet-stream", fileName);
-        }
-
-        [HttpGet("items")]
-        public async Task<IActionResult> GetPagedItems([FromQuery] PagedRequest request)
-        {
-            //var query = _dbContext.Items.AsQueryable();
-
-            //// 排序
-            //if (!string.IsNullOrEmpty(request.SortField))
-            //{
-            //    query = request.SortDirection?.ToLower() == "desc"
-            //        ? query.OrderByDescending(e => EF.Property<object>(e, request.SortField))
-            //        : query.OrderBy(e => EF.Property<object>(e, request.SortField));
-            //}
-
-            //// 获取总记录数
-            //var totalRecords = await query.CountAsync();
-
-            //// 分页
-            //var items = await query
-            //    .Skip((request.PageNumber - 1) * request.PageSize)
-            //    .Take(request.PageSize)
-            //    .ToListAsync();
-
-            //// 创建分页响应
-            //var response = new PagedResponse<Item>(items, request.PageNumber, request.PageSize, totalRecords);
-
-            return Ok();
-        }
+        } 
 
         [HttpGet("HashPassword/{password}")]
         public async Task<ActionResult<string>> HashPassword([Required] string password)

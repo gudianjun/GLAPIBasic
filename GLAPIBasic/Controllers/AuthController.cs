@@ -1,4 +1,5 @@
 ﻿using GLAPIBasic.DTOs;
+using GLAPIBasic.Services.Implementations;
 using GLAPIBasic.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,16 +11,16 @@ namespace GLAPIBasic.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly ITopWindowService _topWindowService;
+        private readonly IAuthService _authService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
         private readonly IMemoryCache _memoryCache;
-        public AuthController(IConfiguration configuration, ITopWindowService topWindowService
+        public AuthController(IConfiguration configuration, IAuthService authService
             , ILogger<AuthController> logger, IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
             _logger = logger;
-            _topWindowService = topWindowService;
+            _authService = authService;
             _configuration = configuration;
         }
 
@@ -27,7 +28,7 @@ namespace GLAPIBasic.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
-            var response = await _topWindowService.LoginAsync(request);
+            var response = await _authService.LoginAsync(request);
             return response;
         }
         /// <summary>
@@ -38,7 +39,7 @@ namespace GLAPIBasic.Controllers
         [Authorize]
         public async Task<ActionResult<string>> Logout()
         {
-            await _topWindowService.LogoutAsync();
+            await _authService.LogoutAsync();
             return (new ApiResponse<string>("Logout Successful")).Result();
         }
         /// <summary>
@@ -50,7 +51,7 @@ namespace GLAPIBasic.Controllers
         [Authorize]
         public async Task<ActionResult<LoginResponse>> Refresh()
         {
-            var response = await _topWindowService.RefreshAsync();
+            var response = await _authService.RefreshAsync();
             return response;
         }
     }

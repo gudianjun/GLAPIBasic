@@ -34,12 +34,6 @@ namespace GLAPIBasic.Controllers
             return response;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<GetUserInfoResponse>> GetUserInfo()
-        {
-            // 实现用户信息检索逻辑
-            return (new ApiResponse<GetUserInfoResponse>(null)).Result();
-        }
         /// <summary>
         /// 更新用户信息
         /// </summary>

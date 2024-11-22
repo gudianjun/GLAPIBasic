@@ -35,7 +35,7 @@ builder.Logging.AddDebug();
 builder.Services.AddMemoryCache();
 // 添加DbContext配置
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<MySqlDbContext>(options =>
+builder.Services.AddDbContext<PgDbContext>(options =>
     options.UseNpgsql(connectionString));
 // 配置APIConfig映射
 builder.Services.Configure<APIConfig>(builder.Configuration.GetSection("APIConfig"));
@@ -234,8 +234,8 @@ builder.Services.AddControllers(options =>
     };
 });
 // 注册服务
-builder.Services.AddScoped<ITopWindowService, TopWindowService>();
-builder.Services.AddScoped<ITopWindowRepository, TopWindowRepository>();
+builder.Services.AddScoped<ITopWindowService, UsersService>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
 
 builder.Services.AddApiVersioning(options =>
