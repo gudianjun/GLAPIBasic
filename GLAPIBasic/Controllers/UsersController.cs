@@ -12,16 +12,16 @@ namespace GLAPIBasic.Controllers
     public class UsersController : ControllerBase
     {
 
-        private readonly ITopWindowService _topWindowService;
+        private readonly IUsersService _usersService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UsersController> _logger;
         private readonly IMemoryCache _memoryCache;
-        public UsersController(IConfiguration configuration, ITopWindowService topWindowService
+        public UsersController(IConfiguration configuration, IUsersService usersService
             , ILogger<UsersController> logger, IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
             _logger = logger;
-            _topWindowService = topWindowService;
+            _usersService = usersService;
             _configuration = configuration;
         }
 
@@ -29,7 +29,7 @@ namespace GLAPIBasic.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<RegisterResponse>> Register(RegisterRequest request)
         {
-            var response = await _topWindowService.RegisterAsync(request);
+            var response = await _usersService.RegisterAsync(request);
             // 实现用户信息修改逻辑
             return response;
         }
@@ -42,7 +42,7 @@ namespace GLAPIBasic.Controllers
         [HttpPut]
         public async Task<ActionResult<UpdateUserInfoResponse>> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
         {
-            var response = await _topWindowService.UpdateUserInfoAsync(request);
+            var response = await _usersService.UpdateUserInfoAsync(request);
             // 实现用户信息修改逻辑
             return response;
         }
@@ -54,7 +54,7 @@ namespace GLAPIBasic.Controllers
         [HttpPut("password")]
         public async Task<ActionResult<ChangePasswordResponse>> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var resopnse = await _topWindowService.ChangePasswordAsync(request);
+            var resopnse = await _usersService.ChangePasswordAsync(request);
             // 实现修改密码逻辑
             return resopnse;
         }
@@ -68,7 +68,7 @@ namespace GLAPIBasic.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<SendResetPasswordCodeResponse>> SendResetPasswordCode([FromBody] SendResetPasswordCodeRequest request)
         {
-            var response = await _topWindowService.SendResetPasswordCodeAsync(request);
+            var response = await _usersService.SendResetPasswordCodeAsync(request);
             return response;
         }
 
@@ -81,7 +81,7 @@ namespace GLAPIBasic.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<CodeResetPasswordResponse>> CodeResetPassword([FromBody] CodeResetPasswordRequest request)
         {
-            var response = await _topWindowService.CodeResetPasswordAsync(request);
+            var response = await _usersService.CodeResetPasswordAsync(request);
             return response;
         }
 
@@ -89,7 +89,7 @@ namespace GLAPIBasic.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<SendCodeResponse>> SendCode([FromBody] SendCodeRequest request)
         {
-            var response = await _topWindowService.SendCodeAsync(request);
+            var response = await _usersService.SendCodeAsync(request);
             return response;
         }
     }

@@ -7,23 +7,23 @@ namespace GLAPIBasic.Validations
 {
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
-        private readonly ITopWindowService _topWindowService;
+        private readonly IUsersService _userService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<RegisterRequestValidator> _logger;
         private readonly IMemoryCache _memoryCache;
-        public RegisterRequestValidator(IConfiguration configuration, ITopWindowService topWindowService
+        public RegisterRequestValidator(IConfiguration configuration, IUsersService userService
             , ILogger<RegisterRequestValidator> logger, IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
             _logger = logger;
-            _topWindowService = topWindowService;
+            _userService = userService;
             _configuration = configuration;
 
             // 邮件地址也不存在。
             // 当mailAddress不为空时，验证mailAddress是否存在 
             RuleFor(x => x.MailAddress).Must((x, cancellation) =>
             {
-                bool has = _topWindowService.CheckMailExist(x.MailAddress).GetAwaiter().GetResult();
+                bool has = _userService.CheckMailExist(x.MailAddress).GetAwaiter().GetResult();
                 return !has;
             }).WithMessage("MailAddress already exists");
         }

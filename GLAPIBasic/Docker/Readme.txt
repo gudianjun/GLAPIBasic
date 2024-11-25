@@ -15,4 +15,5 @@ docker run -d -p 5433:80 --name pgAdmin4 -e "PGADMIN_DEFAULT_EMAIL=gudianjun@hot
 
 
 
-dotnet ef dbcontext scaffold "Host=192.168.166.195;Port=5432;Username=postgres;Password=pwd123456;Database=api_database;Search Path=api_data" Npgsql.EntityFrameworkCore.PostgreSQL -o ./Models --context-dir ./Data -c PgDbContext --force  --schema api_data
+dotnet ef dbcontext scaffold "Host=192.168.166.34;Port=5432;Username=postgres;Password=pwd123456;Database=api_database;Search Path=api_data" Npgsql.EntityFrameworkCore.PostgreSQL -o ./Models --context-dir ./Data -c PgDbContext --force  --schema api_data
+cd 

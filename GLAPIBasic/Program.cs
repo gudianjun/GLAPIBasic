@@ -234,9 +234,10 @@ builder.Services.AddControllers(options =>
     };
 });
 // 注册服务
-builder.Services.AddScoped<ITopWindowService, UsersService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
-
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 builder.Services.AddApiVersioning(options =>
 {
