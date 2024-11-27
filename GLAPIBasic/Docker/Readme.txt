@@ -15,5 +15,15 @@ docker run -d -p 5433:80 --name pgAdmin4 -e "PGADMIN_DEFAULT_EMAIL=gudianjun@hot
 
 
 
-dotnet ef dbcontext scaffold "Host=192.168.166.34;Port=5432;Username=postgres;Password=pwd123456;Database=api_database;Search Path=api_data" Npgsql.EntityFrameworkCore.PostgreSQL -o ./Models --context-dir ./Data -c PgDbContext --force  --schema api_data
-cd 
+dotnet ef dbcontext scaffold "Host=140.83.84.36;Port=5432;Username=postgres;Password=pwd123456;Database=postgres;Search Path=public" Npgsql.EntityFrameworkCore.PostgreSQL -o ./Models --context-dir ./Data -c PgDbContext --force  --schema public
+// 使用配置文件中的连接字符串
+dotnet ef dbcontext scaffold Name=DefaultConnection Npgsql.EntityFrameworkCore.PostgreSQL -o ./Models --context-dir ./Data -c PgDbContext --force --schema public
+
+
+dotnet ef migrations remove
+// 初始化数据库复原
+dotnet ef migrations add InitialCreate
+// 更新数据库
+dotnet ef database update
+// 删除数据库
+dotnet ef database drop

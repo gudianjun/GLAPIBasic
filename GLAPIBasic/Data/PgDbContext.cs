@@ -16,20 +16,23 @@ public partial class PgDbContext : DbContext
     {
     }
 
-    public virtual DbSet<User> Users { get; set; } = null!;
+    public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserHistory> UserHistories { get; set; } = null!;
- 
+    public virtual DbSet<UserHistory> UserHistories { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=DefaultConnection");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
+    { 
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("users_pkey");
 
-            entity.ToTable("users", "api_data");
+            entity.ToTable("users", "public");
 
             entity.Property(e => e.UserId)
-                .HasDefaultValueSql("nextval('users_user_id_seq'::regclass)")
+                .ValueGeneratedNever()
                 .HasColumnName("user_id");
             entity.Property(e => e.AvatarThumbnail).HasColumnName("avatar_thumbnail");
             entity.Property(e => e.CreatedAt)
@@ -53,7 +56,7 @@ public partial class PgDbContext : DbContext
         {
             entity.HasKey(e => new { e.UserId, e.SeqNum }).HasName("user_history_pkey");
 
-            entity.ToTable("user_history", "api_data");
+            entity.ToTable("user_history", "public");
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.SeqNum).HasColumnName("seq_num");

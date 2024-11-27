@@ -1,2 +1,2 @@
 # 创建schema
-psql -U postgres -d api_database -c "CREATE SCHEMA IF NOT EXISTS api_data;"
+psql -U postgres -d postgres -c "CREATE SCHEMA IF NOT EXISTS public;"
