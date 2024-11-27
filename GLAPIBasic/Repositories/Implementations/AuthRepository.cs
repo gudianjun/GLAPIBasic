@@ -23,9 +23,9 @@ namespace GLAPIBasic.Repositories.Implementations
             _configuration = configuration;
             _context = context;
         } 
-        public Task SaveLoginInfoAsync(int userId, string audience, string session)
+        public void SaveLoginInfo(long userId, string audience, string session)
         {
-            if (!_memoryCache.TryGetValue(userId, out UserTokenInfo? userTokenInfo))
+            if (!_memoryCache.TryGetValue(userId.ToString(), out UserTokenInfo? userTokenInfo))
             {
                 userTokenInfo = new UserTokenInfo();
             } // 根据audience更新相应的Token值
@@ -38,8 +38,15 @@ namespace GLAPIBasic.Repositories.Implementations
                 userTokenInfo!.MobileSession = session;
             }
             // 保存到内存中
-            _memoryCache.Set(userId, userTokenInfo);
-            return Task.CompletedTask;
+            _memoryCache.Set(userId.ToString(), userTokenInfo); 
+        }
+        public UserTokenInfo? LoadLoginInfo(long userId)
+        {
+            if (!_memoryCache.TryGetValue(userId.ToString(), out UserTokenInfo? userTokenInfo))
+            {
+                userTokenInfo = null;
+            }
+            return userTokenInfo;
         }
     }
 }

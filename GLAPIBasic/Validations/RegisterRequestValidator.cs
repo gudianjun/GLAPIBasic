@@ -21,11 +21,11 @@ namespace GLAPIBasic.Validations
 
             // 邮件地址也不存在。
             // 当mailAddress不为空时，验证mailAddress是否存在 
-            RuleFor(x => x.MailAddress).Must((x, cancellation) =>
+            RuleFor(x => x.UserName).Must((x, cancellation) =>
             {
-                bool has = _userService.CheckMailExist(x.MailAddress).GetAwaiter().GetResult();
+                bool has = _userService.CheckMailExist(x.UserName).GetAwaiter().GetResult();
                 return !has;
-            }).WithMessage("MailAddress already exists");
+            }).WithMessage("UserName already exists");
         }
     }
 }

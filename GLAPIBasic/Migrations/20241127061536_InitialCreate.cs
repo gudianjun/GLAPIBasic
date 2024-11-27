@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -11,12 +12,8 @@ namespace GLAPIBasic.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "postgres");
-
             migrationBuilder.CreateTable(
                 name: "user_history",
-                schema: "postgres",
                 columns: table => new
                 {
                     user_id = table.Column<long>(type: "bigint", nullable: false),
@@ -30,12 +27,30 @@ namespace GLAPIBasic.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "users",
-                schema: "postgres",
+                name: "user_info",
                 columns: table => new
                 {
-                    user_id = table.Column<long>(type: "bigint", nullable: false),
-                    username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    user_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    password = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    first_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    avatar_thumbnail = table.Column<byte[]>(type: "bytea", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("user_info_pkey", x => x.user_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    user_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     password = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     last_name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
@@ -52,12 +67,13 @@ namespace GLAPIBasic.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "user_history",
-                schema: "postgres");
+                name: "user_history");
 
             migrationBuilder.DropTable(
-                name: "users",
-                schema: "postgres");
+                name: "user_info");
+
+            migrationBuilder.DropTable(
+                name: "users");
         }
     }
 }

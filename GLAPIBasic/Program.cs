@@ -12,6 +12,7 @@ using GLAPIBasic.Repositories.Implementations;
 using GLAPIBasic.Repositories.Interfaces;
 using GLAPIBasic.Services.Implementations;
 using GLAPIBasic.Services.Interfaces;
+using GLAPIBasic.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -114,12 +115,13 @@ builder.Services.AddAuthentication(options =>
         {
             // 通过依赖注入获取IMemoryCache实例
             var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+            var authRepository = context.HttpContext.RequestServices.GetRequiredService<IAuthRepository>();
 
             // 通过token中的用户id，session信息，判断内存中保存的是否一致
             var userId = context.Principal?.FindFirstValue(KeyName.USER_ID);
             var sessionId = context.Principal?.FindFirstValue(KeyName.SESSION_ID);
             var aud = context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Aud);
-            var tokenType = context.Principal?.FindFirstValue(TokenType.TOKEN_TYPE_TITLE);
+            var tokenType = context.Principal?.FindFirstValue(KeyName.TOKEN_TYPE_TITLE);
             if (userId == null || sessionId == null || aud == null || tokenType == null)
             {
                 context.Fail("Unauthorized: User authentication information error.");
@@ -139,7 +141,8 @@ builder.Services.AddAuthentication(options =>
                     }
                 }
                 // 从内存中获取用户Token信息
-                if (!memoryCache.TryGetValue(int.Parse(userId), out UserTokenInfo? userTokenInfo))
+                var userTokenInfo = authRepository.LoadLoginInfo(long.Parse(userId));
+                if (userTokenInfo == null)
                 {
                     context.Fail("Unauthorized: The user session does not exist and needs to login again.");
                 }
@@ -166,7 +169,8 @@ builder.Services.AddAuthentication(options =>
                         context.Fail("Unauthorized: Wrong token type.");
                     }
                 }
-            }
+            } 
+
             return Task.CompletedTask;
         },
         OnAuthenticationFailed = context =>
@@ -347,6 +351,11 @@ app.Use(async (context, next) =>
 
 // 创建上传文件夹
 var apiConfig = app.Services.GetRequiredService<IOptions<APIConfig>>().Value;
+
+// 配置 HttpContextHelper
+HttpContextHelper.Configure(app.Services.GetRequiredService<IHttpContextAccessor>()!);
+
+
 if (!Directory.Exists(apiConfig.UploadPath))
 {
     Directory.CreateDirectory(apiConfig.UploadPath);

@@ -17,7 +17,6 @@ namespace GLAPIBasic.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("postgres")
                 .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -26,8 +25,83 @@ namespace GLAPIBasic.Migrations
             modelBuilder.Entity("GLAPIBasic.Models.User", b =>
                 {
                     b.Property<long>("UserId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserId"));
+
+                    b.Property<byte[]>("AvatarThumbnail")
+                        .HasColumnType("bytea")
+                        .HasColumnName("avatar_thumbnail");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("password");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("username");
+
+                    b.HasKey("UserId")
+                        .HasName("users_pkey");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("GLAPIBasic.Models.UserHistory", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.Property<long>("SeqNum")
+                        .HasColumnType("bigint")
+                        .HasColumnName("seq_num");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<DateTime?>("LoginDatetime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("login_datetime");
+
+                    b.HasKey("UserId", "SeqNum")
+                        .HasName("user_history_pkey");
+
+                    b.ToTable("user_history", (string)null);
+                });
+
+            modelBuilder.Entity("GLAPIBasic.Models.UserInfo", b =>
+                {
+                    b.Property<long>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserId"));
 
                     b.Property<byte[]>("AvatarThumbnail")
                         .HasColumnType("bytea")
@@ -56,39 +130,15 @@ namespace GLAPIBasic.Migrations
                         .HasColumnName("password");
 
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("username");
 
                     b.HasKey("UserId")
-                        .HasName("users_pkey");
+                        .HasName("user_info_pkey");
 
-                    b.ToTable("users", "postgres");
-                });
-
-            modelBuilder.Entity("GLAPIBasic.Models.UserHistory", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
-                    b.Property<long>("SeqNum")
-                        .HasColumnType("bigint")
-                        .HasColumnName("seq_num");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("ip_address");
-
-                    b.Property<DateTime?>("LoginDatetime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("login_datetime");
-
-                    b.HasKey("UserId", "SeqNum")
-                        .HasName("user_history_pkey");
-
-                    b.ToTable("user_history", "postgres");
+                    b.ToTable("user_info", (string)null);
                 });
 #pragma warning restore 612, 618
         }

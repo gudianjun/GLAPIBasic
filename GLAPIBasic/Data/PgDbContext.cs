@@ -16,24 +16,38 @@ public partial class PgDbContext : DbContext
     {
     }
 
-    public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserHistory> UserHistories { get; set; }
+
+    public virtual DbSet<UserInfo> UserInfos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("Name=DefaultConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    { 
-        modelBuilder.Entity<User>(entity =>
+    {
+        modelBuilder.Entity<UserHistory>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("users_pkey");
+            entity.HasKey(e => new { e.UserId, e.SeqNum }).HasName("user_history_pkey");
 
-            entity.ToTable("users", "public");
+            entity.ToTable("user_history");
 
-            entity.Property(e => e.UserId)
-                .ValueGeneratedNever()
-                .HasColumnName("user_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.SeqNum).HasColumnName("seq_num");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(255)
+                .HasColumnName("ip_address");
+            entity.Property(e => e.LoginDatetime)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("login_datetime");
+        });
+
+        modelBuilder.Entity<UserInfo>(entity =>
+        {
+            entity.HasKey(e => e.UserId).HasName("user_info_pkey");
+
+            entity.ToTable("user_info");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.AvatarThumbnail).HasColumnName("avatar_thumbnail");
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("timestamp without time zone")
@@ -45,27 +59,11 @@ public partial class PgDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("last_name");
             entity.Property(e => e.Password)
-                .HasMaxLength(50)
+                .HasMaxLength(200)
                 .HasColumnName("password");
             entity.Property(e => e.Username)
                 .HasMaxLength(50)
                 .HasColumnName("username");
-        });
-
-        modelBuilder.Entity<UserHistory>(entity =>
-        {
-            entity.HasKey(e => new { e.UserId, e.SeqNum }).HasName("user_history_pkey");
-
-            entity.ToTable("user_history", "public");
-
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.SeqNum).HasColumnName("seq_num");
-            entity.Property(e => e.IpAddress)
-                .HasMaxLength(255)
-                .HasColumnName("ip_address");
-            entity.Property(e => e.LoginDatetime)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("login_datetime");
         });
 
         OnModelCreatingPartial(modelBuilder);

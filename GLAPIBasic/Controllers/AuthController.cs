@@ -29,7 +29,7 @@ namespace GLAPIBasic.Controllers
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
             var response = await _authService.LoginAsync(request);
-            return response;
+            return response.Result();
         }
         /// <summary>
         /// Logout
@@ -52,7 +52,7 @@ namespace GLAPIBasic.Controllers
         public async Task<ActionResult<LoginResponse>> Refresh()
         {
             var response = await _authService.RefreshAsync();
-            return response;
+            return response.Result();
         }
     }
 }

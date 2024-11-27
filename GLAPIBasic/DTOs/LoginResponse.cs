@@ -14,7 +14,7 @@
         /// <summary>
         /// 用户信息，当refresh时，返回null，只有在登录时才返回用户信息
         /// </summary>
-        public UserInfo? userInfo { get; set; }
+        public LoginUserInfo? userInfo { get; set; }
 
     }
 }

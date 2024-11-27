@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -49,17 +50,49 @@ namespace GLAPIBasic.Services.Implementations
             _mapper = mapper;
         }
 
-
-        public async Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest request)
+        public  ApiResponse<LoginResponse> getLoginResponse(UserInfo user, string audience)
         {
-            User? user = null;
+            string session = Guid.NewGuid().ToString();
+            string accessToken = StringHelper.CreateToken(session, user.UserId.ToString()
+                , user.Username
+                , _configuration["Jwt:Key"]!
+                , _configuration["Jwt:Issuer"] ?? "issuer"
+                , audience
+                , TokenType.AccessToken
+                , DateTime.Now.AddMinutes(_apiConfig.AccessTokenExpiresTime));
+            string refreshToken = StringHelper.CreateToken(session, user.UserId.ToString()
+               , user.Username
+               , _configuration["Jwt:Key"]!
+               , _configuration["Jwt:Issuer"] ?? "issuer"
+               , audience
+               , TokenType.RefreshToken
+               , DateTime.Now.AddDays(30));
 
+            // 保存用户Token到内存中，用来登录校验
+            _authRepository.SaveLoginInfo(user.UserId, audience, session);
+            var response = new ApiResponse<LoginResponse>(new LoginResponse()
+            {
+                Token = accessToken,
+                RefreshToken = refreshToken,
+                userInfo = new LoginUserInfo()
+                {
+                    UserId = user.UserId,
+                    Username = user.Username!,
+                    AvatarThumbnail = user.AvatarThumbnail??"",
+                    FirstName = user.FirstName,
+                    LastName = user.LastName
+                }
+            });
+            return response;
+        }
+        public async Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request)
+        {
+            UserInfo? user = null;
             user = await _usersRepository.GetUserInfoForUserNameAsync(request.Username);
-
             if (user == null)
             {
                 var response = new ApiResponse<LoginResponse>(HttpStatusCode.NotFound, "Incorrect username or password.", null);
-                return response.Result();
+                return response ;
             }
             else
             {
@@ -68,93 +101,31 @@ namespace GLAPIBasic.Services.Implementations
                 if (!StringHelper.VerifyPassword(request.Password, user!.Password ?? ""))
                 {
                     var response = new ApiResponse<LoginResponse>(HttpStatusCode.NotFound, "Incorrect username or password.", null);
-                    return response.Result();
+                    return response ;
                 }
                 else
                 {
-                    string session = Guid.NewGuid().ToString();
-                    string accessToken = StringHelper.CreateToken(session, user.UserId.ToString()
-                        , request.Username
-                        , _configuration["Jwt:Key"]!
-                        , _configuration["Jwt:Issuer"] ?? "issuer"
-                        , request.AudienceName
-                        , TokenType.AccessToken
-                        , DateTime.Now.AddMinutes(_apiConfig.AccessTokenExpiresTime));
-                    string refreshToken = StringHelper.CreateToken(session, user.UserId.ToString()
-                       , request.Username
-                       , _configuration["Jwt:Key"]!
-                       , _configuration["Jwt:Issuer"] ?? "issuer"
-                       , request.AudienceName
-                       , TokenType.RefreshToken
-                       , DateTime.Now.AddDays(30));
-
-                    // 保存用户Token到内存中，用来登录校验
-                    await _authRepository.SaveLoginInfoAsync((int)user.UserId, request.AudienceName, session);
-                    var response = new ApiResponse<LoginResponse>(new LoginResponse()
-                    {
-                        Token = accessToken,
-                        RefreshToken = refreshToken,
-                        userInfo = new UserInfo()
-                        {
-                            UserId = user.UserId,
-                            Name = user.Username!
-                        }
-                    });
-                    return response.Result();
+                    return getLoginResponse(user, request.AudienceName);
                 }
             }
         }
-        public async Task<ActionResult<LoginResponse>> RefreshAsync()
+        public async Task<ApiResponse<LoginResponse>> RefreshAsync()
         {
-            var claimsIdentity = _httpContextAccessor?.HttpContext?.User.Identity as ClaimsIdentity;
-            if (claimsIdentity != null)
+            var tokenInfo = HttpContextHelper.GetTokenInfo();
+            var user = await _usersRepository.GetUserInfoForUserNameAsync(tokenInfo.UserName);
+            if (user == null)
             {
-                string session = Guid.NewGuid().ToString();
-                var userId = claimsIdentity.FindFirst(KeyName.USER_ID)?.Value;
-                var userName = claimsIdentity.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                var AudienceName = claimsIdentity.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Aud)?.Value;
-
-                string accessToken = StringHelper.CreateToken(session, userId!
-                    , userName!
-                    , _configuration["Jwt:Key"]!
-                    , _configuration["Jwt:Issuer"] ?? "issuer"
-                    , AudienceName!
-                    , TokenType.AccessToken
-                    , DateTime.Now.AddMinutes(15));
-                string refreshToken = StringHelper.CreateToken(session, userId!
-                   , userName!
-                   , _configuration["Jwt:Key"]!
-                   , _configuration["Jwt:Issuer"] ?? "issuer"
-                   , AudienceName!
-                   , TokenType.RefreshToken
-                   , DateTime.Now.AddDays(30));
-
-                // 保存用户Token到内存中，用来登录校验
-                await _authRepository.SaveLoginInfoAsync((int)int.Parse(userId!), AudienceName!,
-                    session);
-                var response = new ApiResponse<LoginResponse>(new LoginResponse()
-                {
-                    Token = accessToken,
-                    RefreshToken = refreshToken,
-                    userInfo = null
-                });
-                return response.Result();
+                var response = new ApiResponse<LoginResponse>(HttpStatusCode.NotFound, "Incorrect username or password.", null);
+                return response;
             }
-            return (new ApiResponse<LoginResponse>(HttpStatusCode.NotFound, "Refresh token failed, need to log in again", null)).Result();
+
+            return getLoginResponse(user, tokenInfo.Audience); 
         }
         public async Task LogoutAsync()
         {
-            var claimsIdentity = _httpContextAccessor?.HttpContext?.User.Identity as ClaimsIdentity;
-            if (claimsIdentity != null)
-            {
-                var userId = claimsIdentity.FindFirst(KeyName.USER_ID)?.Value;
-                var aud = claimsIdentity.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Aud)?.Value;
-                if (userId != null && aud != null)
-                {
-                    await _authRepository.SaveLoginInfoAsync(int.Parse(userId), aud, "");
-                }
-            }
-            throw new NotImplementedException();
-        } 
+            var tokenInfo = HttpContextHelper.GetTokenInfo();
+            _authRepository.SaveLoginInfo(tokenInfo.UserId, tokenInfo.Audience, "");
+            await Task.CompletedTask;
+        }
     }
 }

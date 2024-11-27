@@ -5,8 +5,8 @@ namespace GLAPIBasic.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest request);
+        Task<ApiResponse<LoginResponse>> LoginAsync(LoginRequest request);
         Task LogoutAsync();
-        Task<ActionResult<LoginResponse>> RefreshAsync(); 
+        Task<ApiResponse<LoginResponse>> RefreshAsync(); 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using GLAPIBasic.DTOs;
 using GLAPIBasic.Services.Interfaces;
+using GLAPIBasic.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -10,8 +11,7 @@ namespace GLAPIBasic.Controllers
     [ApiController]
     [Authorize]
     public class UsersController : ControllerBase
-    {
-
+    { 
         private readonly IUsersService _usersService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UsersController> _logger;
@@ -31,7 +31,7 @@ namespace GLAPIBasic.Controllers
         {
             var response = await _usersService.RegisterAsync(request);
             // 实现用户信息修改逻辑
-            return response;
+            return response.Result();
         }
 
         /// <summary>
@@ -44,8 +44,21 @@ namespace GLAPIBasic.Controllers
         {
             var response = await _usersService.UpdateUserInfoAsync(request);
             // 实现用户信息修改逻辑
-            return response;
+            return response.Result();
         }
+
+
+        [HttpGet]
+        public async Task<ActionResult<GetUserInfoResponse>> GetUserInfo()
+        {
+            // 通过HttpContext.User.Identity 获得当前用户的ID信息 
+            var tokenInfo = HttpContextHelper.GetTokenInfo();
+            var response = await _usersService.GetUserInfoAsync(tokenInfo.UserId);
+            return (new ApiResponse<GetUserInfoResponse>(response)).Result();
+
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// 修改密码
         /// </summary>
@@ -56,7 +69,7 @@ namespace GLAPIBasic.Controllers
         {
             var resopnse = await _usersService.ChangePasswordAsync(request);
             // 实现修改密码逻辑
-            return resopnse;
+            return resopnse.Result();
         }
 
         /// <summary>
@@ -69,7 +82,7 @@ namespace GLAPIBasic.Controllers
         public async Task<ActionResult<SendResetPasswordCodeResponse>> SendResetPasswordCode([FromBody] SendResetPasswordCodeRequest request)
         {
             var response = await _usersService.SendResetPasswordCodeAsync(request);
-            return response;
+            return response.Result();
         }
 
         /// <summary>
@@ -82,7 +95,7 @@ namespace GLAPIBasic.Controllers
         public async Task<ActionResult<CodeResetPasswordResponse>> CodeResetPassword([FromBody] CodeResetPasswordRequest request)
         {
             var response = await _usersService.CodeResetPasswordAsync(request);
-            return response;
+            return response.Result();
         }
 
         [HttpPost("send-code")]
@@ -90,7 +103,7 @@ namespace GLAPIBasic.Controllers
         public async Task<ActionResult<SendCodeResponse>> SendCode([FromBody] SendCodeRequest request)
         {
             var response = await _usersService.SendCodeAsync(request);
-            return response;
+            return response.Result();
         }
     }
 }

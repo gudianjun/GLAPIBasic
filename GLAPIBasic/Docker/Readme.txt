@@ -27,3 +27,7 @@ dotnet ef migrations add InitialCreate
 dotnet ef database update
 // 删除数据库
 dotnet ef database drop
+
+自增字段需要手动添加以下标记
+[Key]
+[DatabaseGenerated(DatabaseGeneratedOption.Identity)] // 标记为自增字段

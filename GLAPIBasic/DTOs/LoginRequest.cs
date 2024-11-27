@@ -10,6 +10,7 @@ namespace GLAPIBasic.DTOs
         /// </summary>
         [StringLength(50)]
         [Required(ErrorMessage = "Username is required")]
+        [EmailAddress]
         public string Username { get; set; } = null!;
 
         [StringLength(50)]

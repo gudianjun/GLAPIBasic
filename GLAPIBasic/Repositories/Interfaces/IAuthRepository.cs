@@ -1,9 +1,11 @@
-﻿using GLAPIBasic.Models;
+﻿using GLAPIBasic.DTOs;
+using GLAPIBasic.Models;
 
 namespace GLAPIBasic.Repositories.Interfaces
 {
     public interface IAuthRepository
     {
-        Task SaveLoginInfoAsync(int userId, string audience, string token);
+        void SaveLoginInfo(long userId, string audience, string token);
+        UserTokenInfo? LoadLoginInfo(long userId);
     }
 }

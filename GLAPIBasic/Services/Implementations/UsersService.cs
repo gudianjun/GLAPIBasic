@@ -44,65 +44,49 @@ namespace GLAPIBasic.Services.Implementations
             _apiConfig = apiConfig.CurrentValue;
             _mapper = mapper;
         } 
-        public async Task<ActionResult<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest request)
+        public async Task<ApiResponse<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest request)
         {
-            var claimsIdentity = _httpContextAccessor?.HttpContext?.User.Identity as ClaimsIdentity;
-            if (claimsIdentity != null)
+            var tokenInfo = HttpContextHelper.GetTokenInfo();
+            UserInfo? user = null;
+            user = await _usersRepository.GetUserByIdAsync(tokenInfo.UserId);
+            if (user != null)
             {
-                var userId = claimsIdentity.FindFirst(KeyName.USER_ID)?.Value;
-                if (userId != null)
+                if (!StringHelper.VerifyPassword(request.OldPassword, user.Password ?? ""))
                 {
-                    User? user = null;
-                    if (uint.TryParse(userId, out uint id))
-                    {
-                        user = await _usersRepository.GetUserByIdAsync(id);
-                    }
-                    if (user != null)
-                    {
-                        if (!StringHelper.VerifyPassword(request.OldPassword, user.Password ?? ""))
-                        {
-                            return new ApiResponse<ChangePasswordResponse>(HttpStatusCode.NotFound, "Old password is incorrect", null).Result();
-                        }
-                        else
-                        {
-                            user.Password = StringHelper.HashPassword(request.NewPassword);
-                            int ncount = await _usersRepository.UpdateUserAsync(user);
-                            if (ncount > 0)
-                            {
-                                return new ApiResponse<ChangePasswordResponse>(null).Result();
-                            }
-                            else
-                            {
-                                return new ApiResponse<ChangePasswordResponse>(HttpStatusCode.NotFound, "Update Error!", null).Result();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("Not logged in or verification information is lost");
-                    }
+                    return new ApiResponse<ChangePasswordResponse>(HttpStatusCode.NotFound, "Old password is incorrect", null);
                 }
                 else
                 {
-                    throw new NotImplementedException("There is no user information in the token");
+                    user.Password = StringHelper.HashPassword(request.NewPassword);
+                    int nCount = await _usersRepository.UpdateUserAsync(user);
+                    if (nCount > 0)
+                    {
+                        return new ApiResponse<ChangePasswordResponse>(null);
+                    }
+                    else
+                    {
+                        return new ApiResponse<ChangePasswordResponse>(HttpStatusCode.NotFound, "Update Error!", null);
+                    }
                 }
             }
-            throw new NotImplementedException("Not logged in or verification information is lost");
+            else
+            {
+                throw new NotImplementedException("Not logged in or verification information is lost");
+            } 
         }
-
-
-        public async Task<ActionResult<RegisterResponse>> RegisterAsync(RegisterRequest request)
+         
+        public async Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request)
         {
-            string code = _usersRepository.LoadResetPasswordCode("SendCode_" + request.MailAddress);
+            string code = _usersRepository.LoadResetPasswordCode("SendCode_" + request.UserName);
             if (code == request.ResetCode)
             {// 生成用户数据，并保存到数据库 
-                User user = _mapper.Map<User>(request);
+                UserInfo user = _mapper.Map<UserInfo>(request);
                 await _usersRepository.NewUserAsync(user);
-                return new ApiResponse<RegisterResponse>(HttpStatusCode.OK, "Successful registration", null).Result();
+                return new ApiResponse<RegisterResponse>(HttpStatusCode.OK, "Successful registration", null);
             }
-            return new ApiResponse<RegisterResponse>(HttpStatusCode.NotFound, "Incorrect verification code", null).Result();
+            return new ApiResponse<RegisterResponse>(HttpStatusCode.NotFound, "Incorrect verification code", null);
         }
-        public async Task<ActionResult<SendCodeResponse>> SendCodeAsync([FromBody] SendCodeRequest request)
+        public async Task<ApiResponse<SendCodeResponse>> SendCodeAsync([FromBody] SendCodeRequest request)
         {
             string toEmail = request.Email;
             // 生成随机5位数字验证码
@@ -119,24 +103,48 @@ namespace GLAPIBasic.Services.Implementations
             emailMessage.Body = new TextPart("plain") { Text = message };
             await StringHelper.SendEmailAsync(toEmail, subject, _apiConfig, emailMessage);
             return new ApiResponse<SendCodeResponse>(HttpStatusCode.OK,
-            "The verification code has been sent to the specified email address", null).Result();
+            "The verification code has been sent to the specified email address", null);
         }
-        public async Task<ActionResult<UpdateUserInfoResponse>> UpdateUserInfoAsync(UpdateUserInfoRequest request)
+        public async Task<ApiResponse<UpdateUserInfoResponse>> UpdateUserInfoAsync(UpdateUserInfoRequest request)
         {
-            var claimsIdentity = _httpContextAccessor?.HttpContext?.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity!.FindFirst(KeyName.USER_ID)?.Value;
-            User? user = await _usersRepository.GetUserByIdAsync(uint.Parse(userId!));
-
+            var tokenInfo = HttpContextHelper.GetTokenInfo();
+            UserInfo? user = await _usersRepository.GetUserByIdAsync(tokenInfo.UserId); 
+            if(!string.IsNullOrEmpty(request.FirstName))
+            {
+                user!.FirstName = request.FirstName;
+            }
+            if (!string.IsNullOrEmpty(request.LastName))
+            {
+                user!.LastName = request.LastName;
+            }
+            if (!string.IsNullOrEmpty(request.AvatarThumbnail))
+            {
+                user!.AvatarThumbnail = request.AvatarThumbnail;
+            }
             await _usersRepository.UpdateUserAsync(user!);
-            return new ApiResponse<UpdateUserInfoResponse>(null).Result();
+            return new ApiResponse<UpdateUserInfoResponse>(new UpdateUserInfoResponse() {  
+                FirstName = user!.FirstName,
+                LastName = user!.LastName,
+                AvatarThumbnail = user!.AvatarThumbnail??"",
+                Username = user!.Username 
+            });
         }
-
-        public async Task<ActionResult<SendResetPasswordCodeResponse>> SendResetPasswordCodeAsync(SendResetPasswordCodeRequest request)
+        public async Task<GetUserInfoResponse> GetUserInfoAsync(long userId)
         {
-            var user = await _usersRepository.GetUserByUsernameAsync(request.Email);
+            var userInfo = await _usersRepository.GetUserByIdAsync(userId);
+
+            if (userInfo != null)
+            {
+                return _mapper.Map<GetUserInfoResponse>(userInfo);
+            }
+            throw new KeyNotFoundException("User not found");
+        }
+        public async Task<ApiResponse<SendResetPasswordCodeResponse>> SendResetPasswordCodeAsync(SendResetPasswordCodeRequest request)
+        {
+            var user = await _usersRepository.GetUserInfoForUserNameAsync(request.UserName);
             if (user != null)
             {
-                string toEmail = request.Email;
+                string toEmail = request.UserName;
                 // 生成随机5位数字验证码
                 Random random = new Random();
                 int code = random.Next(10000, 99999);
@@ -151,40 +159,40 @@ namespace GLAPIBasic.Services.Implementations
                 emailMessage.Body = new TextPart("plain") { Text = message };
                 await StringHelper.SendEmailAsync(toEmail, subject, _apiConfig, emailMessage);
                 return new ApiResponse<SendResetPasswordCodeResponse>(HttpStatusCode.OK,
-                "The verification code has been sent to the specified email address", null).Result();
+                "The verification code has been sent to the specified email address", null);
             }
             else
             {
-                return new ApiResponse<SendResetPasswordCodeResponse>(HttpStatusCode.NotFound, "Email not found", null).Result();
+                return new ApiResponse<SendResetPasswordCodeResponse>(HttpStatusCode.NotFound, "Email not found", null);
             }
 
         }
 
-        public async Task<ActionResult<CodeResetPasswordResponse>> CodeResetPasswordAsync(CodeResetPasswordRequest request)
+        public async Task<ApiResponse<CodeResetPasswordResponse>> CodeResetPasswordAsync(CodeResetPasswordRequest request)
         {
-            string code = _usersRepository.LoadResetPasswordCode(request.Email);
+            string code = _usersRepository.LoadResetPasswordCode(request.UserName);
             if (code == request.ResetCode)
             {
-                var user = await _usersRepository.GetUserByUsernameAsync(request.Email);
+                var user = await _usersRepository.GetUserInfoForUserNameAsync(request.UserName);
                 if (user != null)
                 {
                     user.Password = StringHelper.HashPassword(request.NewPassword);
                     await _usersRepository.UpdateUserAsync(user);
-                    return new ApiResponse<CodeResetPasswordResponse>(null).Result();
+                    return new ApiResponse<CodeResetPasswordResponse>(null);
                 }
                 else
                 {
-                    return new ApiResponse<CodeResetPasswordResponse>(HttpStatusCode.NotFound, "User not found", null).Result();
+                    return new ApiResponse<CodeResetPasswordResponse>(HttpStatusCode.NotFound, "User not found", null);
                 }
             }
             else
             {
-                return new ApiResponse<CodeResetPasswordResponse>(HttpStatusCode.NotFound, "Verification code error", null).Result();
+                return new ApiResponse<CodeResetPasswordResponse>(HttpStatusCode.NotFound, "Verification code error", null);
             }
         }
 
         /// <summary>
-        /// 检查邮箱是否存在
+        /// 检查邮箱是否存在(Username)
         /// </summary>
         /// <returns></returns>
         public async Task<bool> CheckMailExist(string? mail)
@@ -193,8 +201,8 @@ namespace GLAPIBasic.Services.Implementations
             {
                 return true;
             }
-            var has = await _usersRepository.CheckIfValueExistsAsync("Users", "MailAddress", mail);
-            return has;
+            var has = await _usersRepository.GetUserInfoForUserNameAsync(mail);
+            return has== null ? false : true;
         }
     }
 }

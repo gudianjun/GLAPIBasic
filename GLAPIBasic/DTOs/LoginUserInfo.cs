@@ -1,9 +1,10 @@
 ﻿namespace GLAPIBasic.DTOs
 {
-    public class UpdateUserInfoResponse
-    { 
+    public class LoginUserInfo
+    {
+        public long UserId { get; set; }
 
-        public string Username { get; set; } = null!;
+        public string Username { get; set; } = null!;  
 
         public string LastName { get; set; } = null!;
 

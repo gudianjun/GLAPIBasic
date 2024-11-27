@@ -6,16 +6,19 @@ namespace GLAPIBasic.Services.Interfaces
     public interface IUsersService
     {
        
-        Task<ActionResult<RegisterResponse>> RegisterAsync(RegisterRequest request); 
-        Task<ActionResult<UpdateUserInfoResponse>> UpdateUserInfoAsync(UpdateUserInfoRequest request);
-        Task<ActionResult<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest request);
+        Task<ApiResponse<RegisterResponse>> RegisterAsync(RegisterRequest request); 
+        Task<ApiResponse<UpdateUserInfoResponse>> UpdateUserInfoAsync(UpdateUserInfoRequest request);
+
+        Task<GetUserInfoResponse> GetUserInfoAsync(long userId);
+
+        Task<ApiResponse<ChangePasswordResponse>> ChangePasswordAsync(ChangePasswordRequest request);
 
          
 
-        Task<ActionResult<SendResetPasswordCodeResponse>> SendResetPasswordCodeAsync(SendResetPasswordCodeRequest request);
-        Task<ActionResult<CodeResetPasswordResponse>> CodeResetPasswordAsync(CodeResetPasswordRequest request);
+        Task<ApiResponse<SendResetPasswordCodeResponse>> SendResetPasswordCodeAsync(SendResetPasswordCodeRequest request);
+        Task<ApiResponse<CodeResetPasswordResponse>> CodeResetPasswordAsync(CodeResetPasswordRequest request);
 
-        Task<ActionResult<SendCodeResponse>> SendCodeAsync([FromBody] SendCodeRequest request);
+        Task<ApiResponse<SendCodeResponse>> SendCodeAsync([FromBody] SendCodeRequest request);
 
         Task<bool> CheckMailExist(string? mail);
     }

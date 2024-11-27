@@ -6,13 +6,9 @@ namespace GLAPIBasic.DTOs
     public class RegisterRequest
     {
         [Required(ErrorMessage = "Name is required")]
-        [StringLength(50)]
-        public string? Name { get; set; }
-
-        [Required(ErrorMessage = "Email is required")]
         [MailValidation(ErrorMessage = "Not a valid email address")]
         [StringLength(50)]
-        public string? MailAddress { get; set; }
+        public string? UserName { get; set; } 
         //
         // 摘要:
         //     The code sent to the user's email to reset the password. To get the reset code,
@@ -27,16 +23,18 @@ namespace GLAPIBasic.DTOs
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$", ErrorMessage = "Password must contain at least 8 characters, including uppercase, lowercase letters and numbers")]
         [Required(ErrorMessage = "Password is required")]
         public required string Password { get; init; }
-        [StringLength(250)]
-        public string? CompanyName { get; set; }
-        [StringLength(250)]
-        public string? Address { get; set; }
+
+        [StringLength(50)]
+        [Required(ErrorMessage = "LastName is required")]
+        public string LastName { get; set; } = null!;
+
+        [StringLength(50)]
+        [Required(ErrorMessage = "FirstName is required")]
+        public string FirstName { get; set; } = null!;
 
         /// <summary>
-        /// 日本地址邮编格式 七位数字
+        /// 头像缩略图，base64编码，保存时解压成byte[]
         /// </summary>
-        [StringLength(7)]
-        [RegularExpression(@"\d{7}")]
-        public string? Zip { get; set; }
+        public string AvatarThumbnail { get; set; } = null!;
     }
 }

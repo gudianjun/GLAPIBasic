@@ -24,34 +24,32 @@ namespace GLAPIBasic.Repositories.Implementations
             _context = context;
         }
  
-        public async Task<User?> GetUserInfoForUserNameAsync(string userName)
+        public async Task<UserInfo?> GetUserInfoForUserNameAsync(string userName)
         {
-            var rtn = await _context.Users.FirstOrDefaultAsync(x => x.Username == userName);
+            var rtn = await _context.UserInfos.FirstOrDefaultAsync(x => x.Username == userName);
             // 通过UserName获取User表中的用户信息
             return rtn;
         }
  
-        public Task<User?> GetUserByIdAsync(uint userId)
+        public Task<UserInfo?> GetUserByIdAsync(long userId)
         {
-            var rtn = _context.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+            var rtn = _context.UserInfos.FirstOrDefaultAsync(x => x.UserId == userId);
             return rtn;
         }
   
-        public async Task NewUserAsync(User user)
+        public async Task NewUserAsync(UserInfo user)
         {
             // 新增User表中的用户信息
-            await _context.Users.AddAsync(user);
+            await _context.UserInfos.AddAsync(user);
             await _context.SaveChangesAsync();
         }
-        public async Task<int> UpdateUserAsync(User user)
+        public async Task<int> UpdateUserAsync(UserInfo user)
         {
             // 更新User表中的用户信息
-            _context.Users.Update(user);
+            _context.UserInfos.Update(user);
             int count = await _context.SaveChangesAsync();
             return count;
-        }
-
- 
+        } 
 
         public void SaveResetPasswordCode(string email, string code)
         {
@@ -98,20 +96,7 @@ namespace GLAPIBasic.Repositories.Implementations
             // 执行查询
             return await dbSet.AnyAsync(lambda);
         }
-
-        public Task<User?> GetUserByUsernameAsync(string username)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SaveUserAsync(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task ChangePasswordAsync(string userId, string newPassword)
-        {
-            throw new NotImplementedException();
-        }
+         
+  
     }
 }
