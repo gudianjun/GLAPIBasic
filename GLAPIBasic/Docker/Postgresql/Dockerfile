@@ -1,7 +1,7 @@
 ﻿FROM postgres:17.1
 
 # 设置环境变量
-ENV POSTGRES_DB=api_database
+ENV POSTGRES_DB=postgres
 ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=pwd123456
 
