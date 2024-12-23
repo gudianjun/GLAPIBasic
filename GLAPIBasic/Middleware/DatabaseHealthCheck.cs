@@ -1,8 +1,9 @@
-﻿using GLAPIBasic.Data;
+﻿
+ 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace GLAPIBasic.Middleware
+namespace APIBasic.Middleware
 {
     /// <summary>
     /// 健康检查中间件
@@ -40,30 +41,7 @@ namespace GLAPIBasic.Middleware
             }
             else
             {
-                try
-                {
-                    DbContextOptions<PgDbContext> options = new DbContextOptionsBuilder<PgDbContext>()
-                       .UseNpgsql(connectionString!)
-                       .Options;
-                    PgDbContext dbContext = new PgDbContext(options);
-                    try
-                    {
-                        dbContext.Database.OpenConnection();
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                    finally
-                    {
-                        dbContext.Database.CloseConnection();
-                    }
-                }
-                catch (Exception)
-                {
-                    return false;
-
-                }
+                
             }
             return true;
         }

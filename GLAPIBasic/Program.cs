@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿using APIBasic.Middleware;
+using Asp.Versioning;
 using AspNetCoreRateLimit;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -20,9 +21,12 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Converters;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +58,23 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.AddInMemoryRateLimiting();
 // 得到全局的上下文对象
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // 设置忽略条件，当属性值为 null 时忽略该属性
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+    // 设置属性命名策略为 camelCase（小驼峰命名法）
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+    // 设置字典键命名策略为 camelCase（小驼峰命名法）
+    options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+
+    // 设置 JSON 输出格式为缩进格式，便于阅读
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter("yyyy-MM-dd HH:mm:ss")); 
+});
+
 // 注册 AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 // 配置 CORS 策略
